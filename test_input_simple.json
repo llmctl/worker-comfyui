@@ -1,0 +1,17 @@
+{
+    "input": {
+        "workflow": {
+            "1": {
+                "inputs": {
+                    "width": 512,
+                    "height": 512,
+                    "batch_size": 1
+                },
+                "class_type": "EmptyLatentImage",
+                "_meta": {
+                    "title": "Empty Latent Image"
+                }
+            }
+        }
+    }
+}
