@@ -96,13 +96,40 @@ def run_job(input_file, prompt=None):
                     node["inputs"]["seed"] = new_seed
                     print(f"Randomized seed for Node {node_id} to: {new_seed}")
 
-        # 2. Update Prompt in CLIPTextEncode
+        # 2. Update Prompt
         if prompt:
+            prompt_updated = False
             for node_id, node in workflow.items():
-                if node.get("class_type") == "CLIPTextEncode":
+                node_type = node.get("class_type")
+                meta = node.get("_meta", {})
+                title = meta.get("title", "").lower()
+                
+                # Logic for CLIPTextEncode
+                if node_type == "CLIPTextEncode":
+                    # Skip negative prompts
+                    if "negative" in title:
+                        continue
+                    
+                    # Update positive/generic prompts
                     if "inputs" in node and "text" in node["inputs"]:
                         node["inputs"]["text"] = prompt
-                        print(f"Updated prompt for Node {node_id} to: {prompt}")
+                        print(f"Updated prompt for Node {node_id} ('{title}')")
+                        prompt_updated = True
+
+                # Logic for PrimitiveStringMultiline (often used as prompt widget)
+                elif node_type == "PrimitiveStringMultiline":
+                     # Skip negative primitives if properly labeled (unlikely but safe)
+                    if "negative" in title:
+                        continue
+                        
+                    if "prompt" in title or "positive" in title:
+                        if "inputs" in node and "value" in node["inputs"]:
+                            node["inputs"]["value"] = prompt
+                            print(f"Updated prompt for Node {node_id} ('{title}')")
+                            prompt_updated = True
+
+            if not prompt_updated:
+                 print("Warning: No suitable node found to update with the prompt.")
 
     headers = {
         "Content-Type": "application/json",
